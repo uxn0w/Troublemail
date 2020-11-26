@@ -3,7 +3,7 @@
 [![Swift][swift-badge]][swift-url]
 [![License][apache-badge]][apache-url]
 ![Platform][platform]
-
+[![codecov](https://codecov.io/gh/uxn0w/Troublemail/branch/main/graph/badge.svg?token=RCQBANQBSH)](https://codecov.io/gh/uxn0w/Troublemail)
 
 **Troublemail** is a framework that helps you determine one-time and temporary email addresses and email services. The database has more than 100,000 domain names blacklisted, and is updated in real time, so you don't have to update the framework, just have an Internet connection when using it. Now, someone will not be so easy to log in to your service using a one-time or temporary email address.
 
