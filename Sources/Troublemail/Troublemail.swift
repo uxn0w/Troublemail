@@ -26,11 +26,10 @@ import Foundation
 /// - Version: 1.0
 @available(iOS 12, OSX 10.13, *)
 public class Troublemail: DMVProtocol {
-            
-   required public init() {}
+    
+    private var model = Blocklist()
     
     public var blocklist: [String] {
-        let model = Blocklist()
         guard
             let blocklist = model.load_pub()
         else { return model.load_loc() }
@@ -38,13 +37,12 @@ public class Troublemail: DMVProtocol {
     }
     
     public static func Configure() {
-        Networking().getBlocklist { (status) in
-            switch(status) {
-            case .success(let blocklist):
-                blocklist.update_db()
-            case .failure(string: let error):
-                logging.network.failure(error ?? "network error")
-            }
+        let network = NetworkDataFetcher()
+        network.fetchBlocklist { (data, error) in
+            guard let data = data else {
+                logging.network.failure(error?.localizedDescription ?? "Network error")
+                return }
+            Blocklist(list: data).update_db()
         }
     }
 }

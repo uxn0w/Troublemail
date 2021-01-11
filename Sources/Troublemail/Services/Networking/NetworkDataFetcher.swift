@@ -16,20 +16,22 @@
 
 import Foundation
 
-@available(iOS 12, OSX 10.13, *)
-struct Blocklist: DataManager {
-   
-    /// Local blocklist items storage
-    var block: [String]
+// MARK: - Network Data Fetcher
+
+class NetworkDataFetcher {
     
-    /// Constructor that uses CDNManager Interface
-    init(list: [String]) {
-        self.block = list
+    private var dataFetcher: NetworkDataFetcherServiceProtocol
+    
+    private var request: URLRequest {
+        let url = URL(string: "https://rawcdn.githack.com/disposable/disposable-email-domains/master/domains.json")!
+        return URLRequest(url: url)
     }
     
-    /// Constructor that uses Provider Interface
-    init() {
-        self.block = [String]()
+    init(dataFetcher: NetworkDataFetcherServiceProtocol = NetworkDataFetcherService()) {
+        self.dataFetcher = dataFetcher
+    }
+
+    final func fetchBlocklist(completion: @escaping ([String]?, Error?) -> Void) {
+        dataFetcher.fetch(request: request, complitionHandler: completion)
     }
 }
-

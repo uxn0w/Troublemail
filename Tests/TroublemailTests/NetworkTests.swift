@@ -7,7 +7,7 @@ final class NetworkTests: XCTestCase {
     
     // MARK: - All tests
     static var allTests = [
-        ("Host is correct",      testTaskUsesCorrectHost),
+//        ("Host is correct",      testTaskUsesCorrectHost),
         ("Fetch and Parse Json", testSuccessfulFetchJsonAndParseBlocklist),
         ("Invalid JSON Object",  testInvalidJSONReturnsError),
         ("Response 404",         testFetchWhenResponseErrorReturns404),
@@ -17,52 +17,64 @@ final class NetworkTests: XCTestCase {
     // MARK: - Properties for testing
     private var emails = ["mail.ru", "google.com"]
     
-    private var networking: Networking!
-    private var mock      : URLSessionMock!
+    private var request: URLRequest {
+        let url = URL(string: "https://rawcdn.githack.com/disposable/disposable-email-domains/master/domains.json")!
+        return URLRequest(url: url)
+    }
+    
+    private var mockSession   : URLSessionMock!
+    private var networkSession: NetworkServiceProtocol!
+    private var networkDataFetcher: NetworkDataFetcher!
+    private var networkDataFetcherService: NetworkDataFetcherServiceProtocol!
     
     // MARK: - Setup
     override func setUp() {
-        self.networking = Networking()
-        self.mock = URLSessionMock(data: nil, urlResponse: nil, responseError: nil)
-        self.networking.session = mock
+        self.mockSession = URLSessionMock(data: nil, urlResponse: nil, responseError: nil)
+        self.networkSession = NetworkService(withSession: mockSession)
+        self.networkDataFetcherService = NetworkDataFetcherService(service: networkSession)
+        self.networkDataFetcher = NetworkDataFetcher(dataFetcher: networkDataFetcherService)
+
     }
     
     // MARK: - Help func
-   
-    private func task_getBlocklist() {
-        let closure = {(status: CDNStatus<Blocklist>)  in }
-        networking.getBlocklist(complitionHandler: closure)
-    }
+    
+    //    private func task_getBlocklist() {
+    //        networkDataFetcher.fetch(request: request, complitionHandler: ([String]?, Error?) -> Void)
+    //    }
     
     private lazy var emailsData: Data = {
         return try! JSONSerialization.data(withJSONObject: emails, options: [])
     }()
     
     private lazy var emailsModel: Blocklist = {
-        return Blocklist(json: emails.map { $0 as AnyObject } )!
+        return Blocklist(list: emails)
     }()
     
     // MARK: - Test func
     
-    func testTaskUsesCorrectHost() {
-        task_getBlocklist()
-        XCTAssertEqual(mock.UComponents?.host, "rawcdn.githack.com")
-    }
+    //    func testTaskUsesCorrectHost() {
+    //        task_getBlocklist()
+    //        XCTAssertEqual(mockSession.UComponents?.host, "rawcdn.githack.com")
+    //    }
     
     func testSuccessfulFetchJsonAndParseBlocklist() {
         let urlresponse = HTTPURLResponseMock()
         let expection   = expectation(description: "Successful Fetch Json")
+        
+        networkSession.session = URLSessionMock(data: emailsData,
+                                                urlResponse: urlresponse,
+                                                responseError: nil)
+        
+        networkDataFetcherService = NetworkDataFetcherService(service: networkSession)
+        networkDataFetcher = NetworkDataFetcher(dataFetcher: networkDataFetcherService)
 
-        networking.session = URLSessionMock(data: emailsData,
-                                            urlResponse: urlresponse,
-                                            responseError: nil)
+        
         var blocklist: Blocklist?
         
-        networking.getBlocklist { (status) in
-            switch status {
-            case .success(let blocks): blocklist = blocks; expection.fulfill()
-            case .failure(_):          XCTFail()
-            }}
+        networkDataFetcher.fetchBlocklist { (data, _) in
+            guard let data = data else { return XCTFail() }
+            blocklist = Blocklist(list: data)
+        }
         
         wait(for: [expection], timeout: 4)
         XCTAssertEqual(blocklist!.block, emailsModel.block)
@@ -72,16 +84,18 @@ final class NetworkTests: XCTestCase {
         let urlresponse = HTTPURLResponseMock()
         let expection   = expectation(description: "Invalid JSON Data")
         var c_error: String?
-
-        networking.session = URLSessionMock(data: Data(),
+        
+        networkSession.session = URLSessionMock(data: Data(),
                                             urlResponse: urlresponse,
                                             responseError: nil)
         
-        networking.getBlocklist { (status) in
-            switch status {
-            case .success(_):         XCTFail()
-            case .failure(let error): c_error = error; expection.fulfill()
-            }}
+        networkDataFetcherService = NetworkDataFetcherService(service: networkSession)
+        networkDataFetcher = NetworkDataFetcher(dataFetcher: networkDataFetcherService)
+        
+        networkDataFetcher.fetchBlocklist { (data, error) in
+            guard let _ = data else { c_error = error?.localizedDescription; expection.fulfill(); return }
+            XCTFail()
+        }
         
         wait(for: [expection], timeout: 4)
         XCTAssertNotNil(c_error)
@@ -92,15 +106,18 @@ final class NetworkTests: XCTestCase {
         let urlresponse   = HTTPURLResponseMock(code: 404)
         let expection     = expectation(description: "Server Not Found. 404 code.")
         var c_error: String?
-
-        networking.session = URLSessionMock(data: nil, urlResponse: urlresponse, responseError: responseerror)
         
-        networking.getBlocklist { (status) in
-            switch status {
-            case .success(_):         XCTFail()
-            case .failure(let error): c_error = error; expection.fulfill()
-            }}
-    
+        networkSession.session = URLSessionMock(data: nil, urlResponse: urlresponse, responseError: responseerror)
+        
+        networkDataFetcherService = NetworkDataFetcherService(service: networkSession)
+        networkDataFetcher = NetworkDataFetcher(dataFetcher: networkDataFetcherService)
+        
+        
+        networkDataFetcher.fetchBlocklist { (data, error) in
+            guard let _ = data else { c_error = error?.localizedDescription; expection.fulfill(); return }
+            XCTFail()
+        }
+        
         wait(for: [expection], timeout: 4)
         XCTAssertNotNil(c_error)
     }
@@ -111,13 +128,12 @@ final class NetworkTests: XCTestCase {
         
         var c_error: String?
         
-        networking.session = URLSessionMock(data: nil, urlResponse: nil, responseError: responseerror)
+        networkSession.session = URLSessionMock(data: nil, urlResponse: nil, responseError: responseerror)
         
-        networking.getBlocklist { (status) in
-            switch status {
-            case .success(_):         XCTFail()
-            case .failure(let error): c_error = error; expection.fulfill()
-            }}
+        networkDataFetcher.fetchBlocklist { (data, error) in
+            guard let _ = data else { c_error = error?.localizedDescription; expection.fulfill(); return }
+            XCTFail()
+        }
         
         wait(for: [expection], timeout: 6)
         XCTAssertNotNil(c_error)
@@ -135,14 +151,14 @@ extension NetworkTests {
             guard let url = request?.url else { return nil }
             return URLComponents(url: url, resolvingAgainstBaseURL: true)
         }
-
+        
         init(data: Data?, urlResponse: URLResponse?, responseError: Error?) {
             DataTaskMock = URLSessionDataTaskMock(
                 data: data,
                 urlResponse: urlResponse,
                 responseError: responseError)
         }
-
+        
         func dataTask(with request: URLRequest, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
             self.request = request
             DataTaskMock.completionHandler = completionHandler
@@ -182,4 +198,5 @@ extension NetworkTests {
             fatalError("init(coder:) has not been implemented")
         }
     }
+    
 }

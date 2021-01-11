@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 
+
 import Foundation
 
-@available(iOS 12, OSX 10.13, *)
-struct Blocklist: DataManager {
-   
-    /// Local blocklist items storage
-    var block: [String]
-    
-    /// Constructor that uses CDNManager Interface
-    init(list: [String]) {
-        self.block = list
-    }
-    
-    /// Constructor that uses Provider Interface
-    init() {
-        self.block = [String]()
-    }
+// MARK: - Extension URLSession for testing
+protocol URLSessionProtocol {
+    func dataTask(with request: URLRequest,
+                  completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask
 }
 
+extension URLSession: URLSessionProtocol {}

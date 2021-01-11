@@ -21,9 +21,6 @@ import Foundation
 /// an email address in the blacklist.
 public protocol DMVProtocol {
     
-    /// Initialize without arguments
-    init()
-    
     /// Storage of one-time mail domains
     var blocklist : [String] { get }
     

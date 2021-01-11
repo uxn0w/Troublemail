@@ -11,7 +11,6 @@ final class BlocklistDMTests: XCTestCase {
         ("Testing File Not Exists Error",                 testWhenLoadFileNotExistsError),
         ("Testing Load when update return nil in storage",testWhenUpdateGetNilInLoadAndSaveNewBlocklist),
         ("Testing Save func in update scope conditions",  testWhenUpdateEqualInternalJsonStorage),
-        ("Testing nil return Blocklist model",            testErrorWhenCastingBlockAsArrayStringInInit),
         ("Testing load database file from local storage", testLoadDatabaseFileFromBundle)
     ]
     
@@ -68,11 +67,6 @@ final class BlocklistDMTests: XCTestCase {
         blocklist.block = ["0-180.com", "dc3r.ru"]
         blocklist.update_db()
         XCTAssertEqual(blocklist.block.count, blocklist.load_pub()?.count)
-    }
-    
-    func testErrorWhenCastingBlockAsArrayStringInInit() {
-        let data = Blocklist(json: [Data() as AnyObject])
-        XCTAssertNil(data)
     }
     
     func testLoadDatabaseFileFromBundle() {
