@@ -25,11 +25,11 @@ public struct TroubleMailConfigure {
     
     private let filename: String
     
-    init(filename: String = "blocklist.json") {
+    public init(filename: String = "blocklist.json") {
         self.filename = filename
     }
     
-    func receiveUpdate() {
+    public func receiveUpdate() {
         network.fetchBlocklist { [self] (data, error) in
             guard let data = data else {
                 logging.network.failure(error?.localizedDescription ?? "Network error")

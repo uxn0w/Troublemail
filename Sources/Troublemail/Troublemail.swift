@@ -126,6 +126,8 @@ public extension DMVProtocol {
 @available(iOS 12, OSX 10.13, *)
 public struct Troublemail: DMVProtocol {
     
+    public init() {}
+    
     // MARK: - Service
     private var storage = StoringDataManager()
     
