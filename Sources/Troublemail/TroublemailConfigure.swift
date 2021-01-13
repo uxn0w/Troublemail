@@ -16,22 +16,27 @@
 
 import Foundation
 
-// MARK: - Network Data Fetcher
-
-class NetworkDataFetcher {
+@available(iOS 12, OSX 10.13, *)
+public struct TroubleMailConfigure {
     
-    private var dataFetcher: NetworkDataFetcherServiceProtocol
+    // MARK: Service
+    private let storage = StoringDataManager()
+    private let network = NetworkDataFetcher()
     
-    private var request: URLRequest {
-        let url = URL(string: "https://rawcdn.githack.com/disposable/disposable-email-domains/master/domains.json")!
-        return URLRequest(url: url)
+    private let filename: String
+    
+    init(filename: String = "blocklist.json") {
+        self.filename = filename
     }
     
-    init(dataFetcher: NetworkDataFetcherServiceProtocol = NetworkDataFetcherService()) {
-        self.dataFetcher = dataFetcher
-    }
-
-    final func fetchBlocklist(completion: @escaping ([String]?, Error?) -> Void) {
-        dataFetcher.fetch(request: request, complitionHandler: completion)
+    func receiveUpdate() {
+        network.fetchBlocklist { [self] (data, error) in
+            guard let data = data else {
+                logging.network.failure(error?.localizedDescription ?? "Network error")
+                return
+            }
+            storage.update(name: filename, with: data)
+        }
     }
 }
+

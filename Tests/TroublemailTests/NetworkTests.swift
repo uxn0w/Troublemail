@@ -46,9 +46,6 @@ final class NetworkTests: XCTestCase {
         return try! JSONSerialization.data(withJSONObject: emails, options: [])
     }()
     
-    private lazy var emailsModel: Blocklist = {
-        return Blocklist(list: emails)
-    }()
     
     // MARK: - Test func
     
@@ -69,15 +66,15 @@ final class NetworkTests: XCTestCase {
         networkDataFetcher = NetworkDataFetcher(dataFetcher: networkDataFetcherService)
 
         
-        var blocklist: Blocklist?
+        var fdata: [String]?
         
         networkDataFetcher.fetchBlocklist { (data, _) in
             guard let data = data else { return XCTFail() }
-            blocklist = Blocklist(list: data)
+            fdata = data
         }
         
         wait(for: [expection], timeout: 4)
-        XCTAssertEqual(blocklist!.block, emailsModel.block)
+        XCTAssertEqual(fdata, emails)
     }
     
     func testInvalidJSONReturnsError() {

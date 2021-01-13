@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Uxnow.
+ * Copyright 2021 Uxnow.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,24 @@
 
 import Foundation
 
-@available(iOS 12, OSX 10.13, *)
-struct Blocklist: DataManager {
-   
-    /// Local blocklist items storage
-    var block: [String]
+// MARK: - Protocol
+protocol DirectoryNamesProtocol {
     
-    /// Constructor that uses CDNManager Interface
-    init(list: [String]) {
-        self.block = list
-    }
+    func documentsDirectoryURL() -> URL
     
-    /// Constructor that uses Provider Interface
-    init() {
-        self.block = [String]()
-    }
+    func prepareURL(with filename: String) -> URL
+    
 }
 
+// MARK: -
+extension DirectoryNamesProtocol {
+    
+    func documentsDirectoryURL() -> URL {
+        return FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+    }
+    
+    func prepareURL(with filename: String) -> URL {
+        return documentsDirectoryURL().appendingPathComponent(filename)
+    }
+    
+}

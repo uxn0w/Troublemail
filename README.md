@@ -27,9 +27,10 @@ dependencies: [
 #### Configure
 The first thing to do is to declare an auto-update of the database. If you couldn't get the database update for any reason, don't worry, the local storage contains the database of 20 Oct 2020.
 
-**Recommend:** In file AppDelegate.swift, we `import Troublemail` module and in `application:didFinishLaunchingWithOptions:` method, we call the `Configure()` method of the `Troublemail` class.
+**Recommend:** In file AppDelegate.swift, we `import Troublemail` module and in `application:didFinishLaunchingWithOptions:` method, we call the `receiveUpdate()` method of the `TroubleMailConfigure` class. You can set your own file name  `TroubleMailConfigure(name: "somename.json"`.
 ```swift
-Troublemail.Configure()
+let tempConfigure = TroubleMailConfigure()
+tempConfigure.receiveUpdate()
 ```
 
 #### Validate
