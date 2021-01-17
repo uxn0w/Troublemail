@@ -122,20 +122,32 @@ public extension DMVProtocol {
 /// addresses for compliance with RFC 5322 (sections 3.2.3 and 3.4.1) and absence of
 /// an email address in the blacklist.
 /// - Author: uxnow | [Github page](https://github.com/uxn0w)
-/// - Version: 1.0
+/// - Version: 1.3
 @available(iOS 12, OSX 10.13, *)
 public struct Troublemail: DMVProtocol {
     
-    public init() {}
-    
     // MARK: - Service
-    private var storage = StoringDataManager()
+    private var storage: DataFetcher
+    
+    public init(filename: String = "blocklist.json") {
+        self.storage = DataFetcher(filename: filename)
+    }
     
     // MARK: - Property
     public var blocklist: [String] {
-        return storage.block
+        return storage.load(from: .uploaded)
+    }
+    
+    // MARK: - Methods for working with additional blocklist
+    public func removeAdditional() {
+        return storage.removeAdditional()
+    }
+    
+    public func additional(blocklist: [String]) {
+        storage.setAdditional(blocklist: blocklist)
     }
 
+    public func showAdditional() -> [String] {
+        return storage.load(from: .custom)
+    }
 }
-
-

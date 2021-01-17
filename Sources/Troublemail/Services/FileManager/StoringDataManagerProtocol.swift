@@ -16,26 +16,24 @@
 
 import Foundation
 
-@available(iOS 12, OSX 10.13, *)
-public struct TroubleMailConfigure {
-    
-    // MARK: Service
-    private let storage: DataFetcher
-    private let network: NetworkDataFetcher
-        
-    public init(filename: String = "blocklist.json") {
-        self.storage = DataFetcher(filename: filename)
-        self.network = NetworkDataFetcher()
-    }
-    
-    public func receiveUpdate() {
-        network.fetchBlocklist { [self] (data, error) in
-            guard let data = data else {
-                logging.network.failure(error?.localizedDescription ?? "Network error")
-                return
-            }
-            storage.update(with: data)
-        }
-    }
-}
+// MARK: - types
+typealias CompletionSave = () -> Void
 
+// MARK: - Protocol
+@available(iOS 12, OSX 10.13, *)
+protocol StoringDataManagerProtocol: class {
+    
+    var block: [String] { get }
+    
+    var filename: String! { get set }
+    
+    func delete()
+    
+    func load_included() -> [String]
+    
+    func load_uploaded() -> [String]?
+    
+    func update_file(with data: [String])
+        
+    func save(data: [String], completion: CompletionSave)
+}

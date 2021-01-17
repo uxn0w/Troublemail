@@ -19,12 +19,15 @@ final class FileManagerTests: XCTestCase {
     
     // MARK: - Properties for testing
     var dataManager: StoringDataManager!
+    var dataFetcher: DataFetcher!
+    
     var blocklist = ["foo"]
     var filename = "testable.json"
     
     // MARK: - Setup
     override func setUp() {
         dataManager = StoringDataManager()
+        dataManager.filename = filename
     }
     
     // MARK: - Test DirectoryNamesProtocol
@@ -54,32 +57,44 @@ final class FileManagerTests: XCTestCase {
     
     func testWhenProviderManagerRecreatedSaveBlocklistShouldBeEqual() {
         dataManager = StoringDataManager()
-        dataManager.save(name: filename, data: blocklist) { dataManager = nil }
-        
-        dataManager = StoringDataManager()
+        dataManager.filename = "testable.json"
 
-        let list = dataManager.load_pub(name: filename)!
+        dataManager.save(data: blocklist) { dataManager = nil }
+
+        dataManager = StoringDataManager()
+        dataManager.filename = "testable.json"
+
+
+        let list = dataManager.load_uploaded()!
         XCTAssertEqual(list.count, 1)
         XCTAssertEqual(list[0], "foo")
     }
     
     /// Triggered when trying to get an update for the first time
     func testLoadWhenBlocklistGetUpdate() {
-                
-        let before = ["foo", "bar"]
-        dataManager.update(name: filename, with: before)
         
-        let list = dataManager.load_pub(name: filename)!
+        dataManager = StoringDataManager()
+        dataManager.filename = "testable.json"
+        
+        let before = ["foo", "bar"]
+        dataManager.update_file(with: before)
+        
+        let list = dataManager.load_uploaded()!
         XCTAssertEqual(list.count, 2)
     }
     
     func testLoadDatabaseFileFromBundle() {
-        XCTAssertNotNil(dataManager.load_loc())
+        XCTAssertNotNil(dataManager.load_included())
     }
     
     func testPublicFileNotExistsError() {
-        dataManager.delete(name: filename)
-        XCTAssertNil(dataManager.load_pub(name: filename))
+        dataManager.delete()
+        XCTAssertNil(dataManager.load_uploaded())
+    }
+    
+    func testInfixOperator() {
+        let additional = ["bar"]
+        XCTAssertNotEqual(blocklist, blocklist <- additional)
     }
 }
 

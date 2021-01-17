@@ -20,7 +20,7 @@ To include Troublemail into a Swift Package Manager package, add it to the `depe
 ```ruby
 dependencies: [
   .Package(url: "https://github.com/uxn0w/Troublemail.git", majorVersion: <majorVersion>, minor: <minor>)
-	]
+    ]
 ```
 
 ### Usage
@@ -82,6 +82,21 @@ let temp = Troublemail()
 
 temp.blocklist
 ```
+You can also add your own list to the database. 
+If some domain names are not included in the CDN, just use `additional(blocklist: [String])` 
+```swift
+
+let temp = Troublemail()
+let ownDomains = ["foo.com"]
+
+// Adding domain names
+temp.additional(blocklist: ownDomains)
+
+// Deleting domain names
+temp.removeAdditional()
+
+```
+
 ## Gratitude
 I Express my gratitude to **[Stefan Meinecke ](https://github.com/smeinecke)** and to project **[disposable](https://github.com/disposable/disposable)** with his **[contributors](https://github.com/disposable/disposable/graphs/contributors)** for providing the CDN.
 
